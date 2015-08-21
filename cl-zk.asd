@@ -4,7 +4,9 @@
   :license "AL2"
   :description "Zookeeper client"
   :serial t
-  :components ((:file "package"))
+  :components ((:file "package")
+               (:file "protocol")
+               (:file "conn"))
   :depends-on (:alexandria
                :flexi-streams
                :split-sequence

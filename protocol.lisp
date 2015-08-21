@@ -24,6 +24,18 @@
 (defun as-bytes (s)
   (flexi-streams:string-to-octets s))
 
+(defmethod encode-value :around (value (conn zk-connection))
+  (let* ((os (flexi-streams:make-in-memory-output-stream))
+         (ims (flexi-streams:make-flexi-stream os))
+         (cxn (conn conn)))
+    (call-next-method value ims)
+    (force-output ims)
+    (let ((bv (flexi-streams:get-output-stream-sequence os)))
+      (write-int (length bv) cxn)
+      (write-sequence bv cxn))
+    (force-output cxn)))
+
+
 (defmethod encode-value ((value connect-request) stream)
   (with-slots (protocol-version last-zxid-seen timeout session-id password) value
     (write-int protocol-version stream)

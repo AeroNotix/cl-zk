@@ -22,19 +22,11 @@
                       (timeout 0)
                       (session-id 0)
                       (password ""))
-  (let* ((os (flexi-streams:make-in-memory-output-stream))
-         (ims (flexi-streams:make-flexi-stream os))
-         (c (conn conn))
-         (connect-request (make-instance 'connect-request
+  (let* ((connect-request (make-instance 'connect-request
                                          :protocol-version protocol-version
                                          :last-zxid-seen last-zxid-seen
                                          :timeout timeout
                                          :session-id session-id
                                          :password password)))
-    (encode-value connect-request ims)
-    (force-output ims)
-    (let ((bv (flexi-streams:get-output-stream-sequence os)))
-      (write-int (length bv) c)
-      (write-sequence bv c))
-    (force-output c)
+    (encode-value connect-request conn)
     (values)))

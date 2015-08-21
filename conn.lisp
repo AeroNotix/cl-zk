@@ -23,11 +23,12 @@
                       (timeout 0)
                       (session-id 0)
                       (password ""))
-  (let* ((connect-request (make-instance 'connect-request
-                                         :protocol-version protocol-version
-                                         :last-zxid-seen last-zxid-seen
-                                         :timeout timeout
-                                         :session-id session-id
-                                         :password password)))
+  (let* ((connect-request
+          (make-instance 'connect-request
+                         :protocol-version protocol-version
+                         :last-zxid-seen last-zxid-seen
+                         :timeout timeout
+                         :session-id session-id
+                         :password password)))
     (encode-value connect-request conn)
     (values)))

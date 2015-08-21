@@ -8,7 +8,8 @@
   (let* ((cxn (usocket:socket-stream
                (usocket:socket-connect host port :element-type '(unsigned-byte 8))))
          (conn (make-instance 'zk-connection :conn cxn)))
-    (connect conn)))
+    (connect conn)
+    conn))
 
 (defgeneric connect (connection &key)
   (:documentation "Makes an initialization request to Zookeeper."))

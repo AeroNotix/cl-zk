@@ -10,6 +10,7 @@
    (last-zxid-seen :accessor last-zxid-seen :initarg :last-zxid-seen)
    (timeout :accessor timeout :initarg :timeout)
    (session-id :accessor session-id :initarg :session-id)
+   (password :accessor password :initarg :password)
    (read-only :accessor read-only :initarg :read-only)))
 
 (defun write-length (thing stream)
@@ -30,7 +31,8 @@
     (write-bigint last-zxid-seen stream)
     (write-int timeout stream)
     (write-bigint session-id stream)
+    (write-int (length password) stream)
     (encode-value (as-bytes password) stream)
-    (if read-only
+    (write-int 0 stream)))
         (write-int 1 stream)
         (write-int 0 stream))))

@@ -13,14 +13,15 @@
 (defgeneric connect (connection &key)
   (:documentation "Makes an initialization request to Zookeeper."))
 
+(defgeneric get-data (connection path &key)
+  (:documentation "Gets data from the path."))
 
 (defmethod connect ((conn zk-connection)
                     &key (protocol-version 0)
                       (last-zxid-seen 0)
                       (timeout 0)
                       (session-id 0)
-                      (password "")
-                      (read-only NIL))
+                      (password ""))
   (let* ((os (flexi-streams:make-in-memory-output-stream))
          (ims (flexi-streams:make-flexi-stream os))
          (c (conn conn))
@@ -29,8 +30,7 @@
                                          :last-zxid-seen last-zxid-seen
                                          :timeout timeout
                                          :session-id session-id
-                                         :password password
-                                         :read-only read-only)))
+                                         :password password)))
     (encode-value connect-request ims)
     (force-output ims)
     (let ((bv (flexi-streams:get-output-stream-sequence os)))

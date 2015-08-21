@@ -10,8 +10,7 @@
    (last-zxid-seen :accessor last-zxid-seen :initarg :last-zxid-seen)
    (timeout :accessor timeout :initarg :timeout)
    (session-id :accessor session-id :initarg :session-id)
-   (password :accessor password :initarg :password)
-   (read-only :accessor read-only :initarg :read-only)))
+   (password :accessor password :initarg :password)))
 
 (defun write-length (thing stream)
   (let ((len (length thing)))

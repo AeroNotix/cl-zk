@@ -5,7 +5,10 @@
   :description "Zookeeper client"
   :serial t
   :components ((:file "package")
+               (:file "macros")
                (:file "conn")
+               (:file "types")
+               (:file "messages")
                (:file "protocol"))
   :depends-on (:alexandria
                :flexi-streams

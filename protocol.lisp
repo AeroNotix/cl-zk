@@ -5,12 +5,20 @@
   (:documentation
    "Encodes a value into a stream"))
 
+(defgeneric decode-value (value stream)
+  (:documentation
+   "Decodes a value from a stream"))
+
 (defclass connect-request ()
   ((protocol-version :accessor protocol-version :initarg :protocol-version)
    (last-zxid-seen :accessor last-zxid-seen :initarg :last-zxid-seen)
    (timeout :accessor timeout :initarg :timeout)
    (session-id :accessor session-id :initarg :session-id)
    (password :accessor password :initarg :password)))
+
+(defclass get-request ()
+  ((path :accessor path :initarg :path)
+   (watch :accessor watch :initarg :watch)))
 
 (defun write-length (thing stream)
   (let ((len (length thing)))
@@ -34,16 +42,3 @@
       (write-int (length bv) cxn)
       (write-sequence bv cxn))
     (force-output cxn)))
-
-
-(defmethod encode-value ((value connect-request) stream)
-  (with-slots (protocol-version last-zxid-seen timeout session-id password) value
-    (write-int protocol-version stream)
-    (write-bigint last-zxid-seen stream)
-    (write-int timeout stream)
-    (write-bigint session-id stream)
-    (write-int (length password) stream)
-    (encode-value (as-bytes password) stream)
-    (write-int 0 stream)))
-        (write-int 1 stream)
-        (write-int 0 stream))))

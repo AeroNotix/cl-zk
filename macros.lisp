@@ -24,16 +24,19 @@
 
 (defun writer-for-type (fieldspec stream)
   (let ((name (first fieldspec))
-        (type (second fieldspec)))
+        (type (second fieldspec))
+        (buf-sym (gensym)))
     (ccase type
       (int `(write-int ,name ,stream))
       (bigint `(write-bigint ,name ,stream))
       (byte-array
-       `(encode-value (as-bytes ,name) ,stream))
+       `(let ((,buf-sym (as-bytes ,name)))
+          (write-length ,buf-sym ,stream)
+          (write-sequence ,buf-sym ,stream)))
       (boolean
        `(if ,name
-            (write-int 1 ,stream)
-            (write-int 0 ,stream))))))
+            (write-byte 1 ,stream)
+            (write-byte 0 ,stream))))))
 
 (defmacro define-message (name type-id superclasses fields)
   (let ((names (mapcar #'car fields))

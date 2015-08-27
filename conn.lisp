@@ -9,8 +9,7 @@
                (usocket:socket-connect host port :element-type '(unsigned-byte 8))))
          (conn (make-instance 'zk-connection :conn cxn)))
     (connect conn)
-    (let ((cr (read-connect-response conn)))
-      (format t "~A" (password cr)))
+    (read-connect-response conn)
     conn))
 
 (defgeneric connect (connection &key)
@@ -19,9 +18,9 @@
 (defmethod connect ((conn zk-connection)
                     &key (protocol-version 0)
                       (last-zxid-seen 0)
-                      (timeout 0)
+                      (timeout 10000)
                       (session-id 0)
-                      (password "")
+                      (password (make-string 16 :initial-element (code-char 0)))
                       (read-only nil))
   (let* ((connect-request
           (make-instance 'connect-request

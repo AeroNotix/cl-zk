@@ -30,10 +30,11 @@
                          :session-id session-id
                          :password password
                          :read-only read-only))
-         (ims (flexi-streams:make-in-memory-output-stream))
-         (os (flexi-streams:make-flexi-stream ims)))
-    (encode-value connect-request os)
-    (format t "~A" (flexi-streams:get-output-stream-sequence ims))
+         (os (flexi-streams:make-in-memory-output-stream))
+         (ims (flexi-streams:make-flexi-stream os)))
+    (encode-value connect-request ims)
+    (encode-value connect-request conn)
+    (format t "~A" (flexi-streams:get-output-stream-sequence os))
     (values)))
 
 (defun get-data (conn path)

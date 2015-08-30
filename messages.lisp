@@ -22,3 +22,6 @@
 (define-message get-children-request 8 ()
   ((path byte-array)
    (watch boolean)))
+
+(define-message ping 11 ()
+  ())

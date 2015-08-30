@@ -39,16 +39,21 @@
             (write-byte 0 ,stream))))))
 
 (defmacro define-message (name type-id superclasses fields)
-  (let ((names (mapcar #'car fields))
-        (value-sym (gensym))
-        (stream-sym (gensym)))
+  (let* ((xid-sym (gensym))
+         (names (mapcar #'car fields))
+         (name-slots (cons `(,xid-sym xid) (mapcar #'car fields)))
+         (value-sym (gensym))
+         (stream-sym (gensym)))
     `(progn
        (defclass ,name ,superclasses
-         ,(mapcar #'make-clos-field names))
+         ((xid :accessor xid :initarg :xid :initform :unset)
+          ,@(mapcar #'make-clos-field names)))
        (defmethod encode-value ((,value-sym ,name) ,stream-sym)
-         (with-slots ,names ,value-sym
-           (if ,type-id ;; Gensym this
-               (write-int ,type-id ,stream-sym))
+         (with-slots ,name-slots ,value-sym
+           (unless (eq ,xid-sym :unset)
+             (write-int ,xid-sym ,stream-sym))
+           ,(if type-id
+                `(write-int ,type-id ,stream-sym))
            ,@(mapcar (lambda (p)
                        (writer-for-type p stream-sym)) fields)))
        (defmethod decode-value ((,value-sym ,name) ,stream-sym)

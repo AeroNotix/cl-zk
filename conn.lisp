@@ -14,7 +14,10 @@
          (conn (make-instance 'zk-connection :conn cxn :tcp-conn tcp-conn)))
     (connect conn)
     (read-connect-response conn)
-    (multiple-value-bind (stop-channel query-channel read-loop-thread) (start-io-loop conn)
+    (let* ((stop-channel (make-instance 'chanl:channel))
+           (query-channel (make-instance 'chanl:channel))
+           (read-loop-fn (make-zk-loop conn stop-channel query-channel))
+           (read-loop-thread (bordeaux-threads:make-thread read-loop-fn)))
       (setf (stop-channel conn) stop-channel)
       (setf (query-channel conn) query-channel)
       (setf (read-loop-thread conn) read-loop-thread))
@@ -94,13 +97,4 @@
                   (setf exit? t)))
                 ((chanl:recv tc)
                    (encode-value +ping-instance+ conn))))
-               while (not exit?)))))))
-
-(defun start-io-loop (conn)
-  (let* ((stop-channel (make-instance 'chanl:channel))
-         (query-channel (make-instance 'chanl:channel))
-         (read-loop-fn (make-zk-loop conn stop-channel query-channel)))
-    (values
-     stop-channel
-     query-channel
-     (bordeaux-threads:make-thread read-loop-fn))))
+               while (not exit?)))))

@@ -23,6 +23,9 @@
       (setf (read-loop-thread conn) read-loop-thread))
     conn))
 
+(defun make-sized-buffer (size)
+  (make-array size :element-type '(unsigned-byte 8)))
+
 (defgeneric connect (connection &key)
   (:documentation "Makes an initialization request to Zookeeper."))
 
@@ -53,7 +56,7 @@
         (c (conn conn)))
     (encode-value gdr conn)
     (let* ((size (* 1 (read-int c)))
-           (buf (make-array size :element-type '(unsigned-byte 8))))
+           (buf (make-sized-buffer size)))
       (read-sequence buf c :end size)
       buf)))
 
@@ -62,7 +65,7 @@
         (c (conn conn)))
     (encode-value gdr conn)
     (let* ((size (* 1 (read-int c)))
-           (buf (make-array size :element-type '(unsigned-byte 8))))
+           (buf (make-sized-buffer size)))
       (read-sequence buf c :end size)
       buf)))
 
@@ -95,6 +98,6 @@
                 (let ((c (conn conn)))
                   (usocket:socket-close (tcp-conn conn))
                   (setf exit? t)))
-                ((chanl:recv tc)
-                   (encode-value +ping-instance+ conn))))
-               while (not exit?)))))
+               ((chanl:recv tc)
+                 (encode-value +ping-instance+ conn))))
+         while (not exit?)))))

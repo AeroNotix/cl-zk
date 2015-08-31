@@ -10,6 +10,7 @@
          (conn (make-instance 'zk-connection :conn cxn)))
     (connect conn)
     (read-connect-response conn)
+    (start-io-loop conn)
     conn))
 
 (defgeneric connect (connection &key)
@@ -59,3 +60,32 @@
   (let* ((c (conn conn))
          (cr (make-instance 'connect-response)))
     (decode-value cr c)))
+
+(defun timeout-channel (time)
+  (let* ((c (make-instance 'chanl:bounded-channel :size 1))
+         (timeout-fn (lambda ()
+                       (sleep time)
+                       (chanl:send c :timeout))))
+    (bordeaux-threads:make-thread timeout-fn)
+    c))
+
+(defun close-connection (conn)
+  )
+
+(defun start-io-loop (conn)
+  (let* ((stop-channel (make-instance 'chanl:channel))
+         (query-channel (make-instance 'chanl:channel))
+         (read-loop-fn (lambda ()
+                         (let ((exit? nil))
+                           (loop
+                              do
+                                (let ((tc (timeout-channel 10)))
+                                  (force-output)
+                                  (chanl:select
+                                    ((chanl:recv stop-channel)
+                                     (setf exit? t))
+                                    ((chanl:recv tc)
+                                     (encode-value +ping-instance+ conn))))
+                              while (not exit?))))))
+    (bordeaux-threads:make-thread read-loop-fn)
+    (values stop-channel query-channel)))

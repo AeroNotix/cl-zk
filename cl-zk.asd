@@ -15,7 +15,8 @@
                :split-sequence
                :bordeaux-threads
                :uuid
-               :usocket)
+               :usocket
+               :chanl)
   :defsystem-depends-on (:fiveam)
   :in-order-to ((test-op (test-op :cl-zk-test))))
 

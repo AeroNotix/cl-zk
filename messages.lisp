@@ -25,3 +25,6 @@
 
 (define-message ping 11 ()
   ())
+
+(defvar +ping-instance+
+  (make-instance 'ping :xid -2))

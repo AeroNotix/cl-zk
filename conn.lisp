@@ -2,15 +2,22 @@
 
 
 (defclass zk-connection ()
-  ((conn :accessor conn :initarg :conn)))
+  ((conn :accessor conn :initarg :conn)
+   (tcp- :accessor tcp-conn :initarg :tcp-conn)
+   (read-loop-thread :accessor read-loop-thread :initarg :read-loop-thread)
+   (stop-channel :accessor stop-channel :initarg :stop-channel)
+   (query-channel :accessor query-channel :initarg :query-channel)))
 
 (defun make-connection (&key (host "localhost") (port 2181))
-  (let* ((cxn (usocket:socket-stream
-               (usocket:socket-connect host port :element-type '(unsigned-byte 8))))
-         (conn (make-instance 'zk-connection :conn cxn)))
+  (let* ((tcp-conn (usocket:socket-connect host port :element-type '(unsigned-byte 8)))
+         (cxn (usocket:socket-stream tcp-conn))
+         (conn (make-instance 'zk-connection :conn cxn :tcp-conn tcp-conn)))
     (connect conn)
     (read-connect-response conn)
-    (start-io-loop conn)
+    (multiple-value-bind (stop-channel query-channel read-loop-thread) (start-io-loop conn)
+      (setf (stop-channel conn) stop-channel)
+      (setf (query-channel conn) query-channel)
+      (setf (read-loop-thread conn) read-loop-thread))
     conn))
 
 (defgeneric connect (connection &key)
@@ -70,22 +77,30 @@
     c))
 
 (defun close-connection (conn)
-  )
+  (chanl:send (stop-channel conn) t)
+  (values))
+
+(defun make-zk-loop (conn stop-channel query-channel)
+  (lambda ()
+    (let ((exit? nil))
+      (loop
+         do
+           (let ((tc (timeout-channel 10)))
+             (force-output)
+             (chanl:select
+               ((chanl:recv stop-channel)
+                (let ((c (conn conn)))
+                  (usocket:socket-close (tcp-conn conn))
+                  (setf exit? t)))
+                ((chanl:recv tc)
+                   (encode-value +ping-instance+ conn))))
+               while (not exit?)))))))
 
 (defun start-io-loop (conn)
   (let* ((stop-channel (make-instance 'chanl:channel))
          (query-channel (make-instance 'chanl:channel))
-         (read-loop-fn (lambda ()
-                         (let ((exit? nil))
-                           (loop
-                              do
-                                (let ((tc (timeout-channel 10)))
-                                  (force-output)
-                                  (chanl:select
-                                    ((chanl:recv stop-channel)
-                                     (setf exit? t))
-                                    ((chanl:recv tc)
-                                     (encode-value +ping-instance+ conn))))
-                              while (not exit?))))))
-    (bordeaux-threads:make-thread read-loop-fn)
-    (values stop-channel query-channel)))
+         (read-loop-fn (make-zk-loop conn stop-channel query-channel)))
+    (values
+     stop-channel
+     query-channel
+     (bordeaux-threads:make-thread read-loop-fn))))

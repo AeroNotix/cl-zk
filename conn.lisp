@@ -83,4 +83,6 @@
   (format t "~A~%" message))
 
 (defun make-c-connection2 (host logcallback &key (timeout 10000) (clientid np))
+  ;; TODO: This blocks when a debug connection tries to do something with it.
+  ;; TODO: Debug^^
   (zookeeper-init2 host np timeout clientid np 0 logcallback))

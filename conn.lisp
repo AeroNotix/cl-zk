@@ -39,6 +39,9 @@
   (flags :int)
   (log-callback :pointer))
 
+(cffi:defcfun zerror :string
+  (c :int))
+
 (cffi:defcfun zookeeper-close :int
   (zhandle :pointer))
 
@@ -50,11 +53,21 @@
   (buffer-len :int)
   (stat :pointer)) ;; TODO: This is a Stat thing? Implement
 
-(cffi:defcfun zoo-exists :int
+(cffi:defcfun ("zoo_exists" %zoo-exists) :int
   (zhandle :pointer)
   (path :string)
   (watch :int)
   (stat :pointer))
+
+(defun exists? (zhandle path watch stat)
+  (let* ((exists? (%zoo-exists zhandle path watch stat))
+         (exists-kw (cffi:foreign-enum-keyword 'zoo-errors exists?)))
+    (ccase exists-kw
+      (:zok T)
+      (:znonode NIL)
+      ;; This should signal an error since people would use this like:
+      ;; (when (exists? ..)) and then the kw returned would be truthy
+      (t exists-kw))))
 
 (cffi:defcfun zoo-state :int
   (zhandle :pointer))

@@ -5,6 +5,8 @@
   :description "Zookeeper client"
   :serial t
   :components ((:file "package")
+               (:file "tyranny")
+               (:file "errors")
                (:file "conn"))
   :depends-on (:alexandria
                :cffi

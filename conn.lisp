@@ -11,6 +11,9 @@
 
 (cffi:use-foreign-library zookeeper)
 
+(defvar np (cffi:null-pointer))
+
+(cffi:defcvar ("errno" *errno* :read-only t) :int)
 (cffi:defcvar "ZOO_EXPIRED_SESSION_STATE" :int)
 (cffi:defcvar "ZOO_AUTH_FAILED_STATE" :int)
 (cffi:defcvar "ZOO_CONNECTING_STATE" :int)
@@ -27,9 +30,6 @@
   (context :pointer)
   (flags :int))
 
-(cffi:defcfun zookeeper-close :int
-  (zhandle :pointer))
-
 (cffi:defcfun zookeeper-init2 :pointer
   (hostname :string)
   (watcher-fn :pointer)
@@ -38,6 +38,9 @@
   (context :pointer)
   (flags :int)
   (log-callback :pointer))
+
+(cffi:defcfun zookeeper-close :int
+  (zhandle :pointer))
 
 (cffi:defcfun zoo-get :int
   (zhandle :pointer)
@@ -55,10 +58,6 @@
 
 (cffi:defcfun zoo-state :int
   (zhandle :pointer))
-
-(defvar np (cffi:null-pointer))
-
-(cffi:defcvar ("errno" *errno* :read-only t) :int)
 
 (defun make-c-connection (host &key (timeout 10000) (clientid np))
   (let ((conn (zookeeper-init host np timeout clientid np 0)))

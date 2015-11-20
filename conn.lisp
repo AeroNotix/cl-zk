@@ -67,6 +67,20 @@
             (:zok
              (cffi:foreign-string-to-lisp buf))))))))
 
+(cffi:defcfun ("zoo_set" %zoo-set) :int
+  (zhandle :pointer)
+  (path :string)
+  (buffer :pointer)
+  (buffer-len :int)
+  (version :int))
+
+;; TODO: defgeneric this have it operate on strings and buffers and
+;; streams and all that good stuff. Implement it with just strings
+;; now.
+(defun set-data (zhandle path data &key (version -1))
+  (cffi:with-foreign-string (buf data)
+    (%zoo-set zhandle path buf (+ (length data) 1) version)))
+
 (cffi:defcfun ("zoo_exists" %zoo-exists) :int
   (zhandle :pointer)
   (path :string)

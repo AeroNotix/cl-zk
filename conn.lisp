@@ -45,13 +45,27 @@
 (cffi:defcfun zookeeper-close :int
   (zhandle :pointer))
 
-(cffi:defcfun zoo-get :int
+(cffi:defcfun ("zoo_get" %zoo-get) :int
   (zhandle :pointer)
   (path :string)
   (watch :int)
   (buffer :pointer)
-  (buffer-len :int)
+  (buffer-len :pointer)
   (stat :pointer)) ;; TODO: This is a Stat thing? Implement
+
+(defun get-data (zhandle path watch stat)
+  ;; TODO: How to handle dynamically sized get-data calls, without
+  ;; resorting to just allocating a buffer the max size of data
+  ;; allowed?
+  (let ((buf-size 512))
+    (cffi:with-foreign-object (buf :char buf-size)
+      (with-pointer-to-int (i buf-size)
+        (let* ((get-result (%zoo-get zhandle path watch buf i stat))
+               (get-kw (cffi:foreign-enum-keyword 'zoo-errors get-result)))
+          (ccase get-kw
+            ;; TODO: handle other cases
+            (:zok
+             (cffi:foreign-string-to-lisp buf))))))))
 
 (cffi:defcfun ("zoo_exists" %zoo-exists) :int
   (zhandle :pointer)

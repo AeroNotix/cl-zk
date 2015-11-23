@@ -6,8 +6,7 @@
   (:unix
    (:or "libzookeeper.so"
         "libzookeeper_mt.so"
-        "libzookeeper_st.so"
-        "/home/xeno/dev/cl-zk/.zookeeper/src/c/.libs/libzookeeper_mt.so")))
+        "libzookeeper_st.so")))
 
 (cffi:use-foreign-library zookeeper)
 

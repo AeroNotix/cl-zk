@@ -99,8 +99,15 @@
 (cffi:defcfun zoo-state :int
   (zhandle :pointer))
 
-(defun make-c-connection (host &key (timeout 10000) (clientid np))
-  (let ((conn (zookeeper-init host np timeout clientid np 0)))
+(defun make-connection (host &key (timeout 10000) (clientid np) log-callback)
+
+  (let ((conn (if log-callback
+                  ;; TODO: This blocks when a debugged connection tries to do something with it.
+                  ;; TODO: Debug^^
+                  ;; TODO: This requires a defcallback'd function, not a Lisp function.
+                  ;; TODO: Provide a way to pass a proper Lisp function.
+                  (zookeeper-init2 host np timeout clientid np 0 logcallback)
+                  (zookeeper-init host np timeout clientid np 0))))
     (if (eq np conn)
         ;; TODO: make this a signal/restart
         (error (format nil "Error creating connection: ~d" *errno*))
@@ -108,8 +115,3 @@
 
 (cffi:defcallback logcb :void ((message :string))
   (format t "~A~%" message))
-
-(defun make-c-connection2 (host logcallback &key (timeout 10000) (clientid np))
-  ;; TODO: This blocks when a debugged connection tries to do something with it.
-  ;; TODO: Debug^^
-  (zookeeper-init2 host np timeout clientid np 0 logcallback))
